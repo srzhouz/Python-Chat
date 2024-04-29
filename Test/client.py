@@ -33,5 +33,5 @@ if data_receive:
         # receiving response from the server
         data_receive = client_object.recv(1024)
         if data_receive:
-            print("{}: {}".format("SERVER",data_receive.decode('utf-8')))
+            print("{}: {}".format("SERVER",data_receive.decode('utf-8'))) #prrintS
             #Hola a
