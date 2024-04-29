@@ -34,5 +34,3 @@ if data_receive:
         data_receive = client_object.recv(1024)
         if data_receive:
             print("{}: {}".format("SERVER",data_receive.decode('utf-8')))
-            JHVKJHV
-            fffff
