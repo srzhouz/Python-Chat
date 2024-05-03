@@ -1,0 +1,30 @@
+Roadmap aplicación de chat (local)
+
+La idea es diseñar y programar una aplicación de chat local. Cada usuario iniciara sesión con usuario y contraseña. Los chats y archivo se guardarían de forma local. El inicio de sesión solo serviría para verificar la integridad del usuario.
+
+•	Para empezar
+-Poder chatear entre 2 ordenadores de forma local. Muy simple sin logins por cmd.
+
+•	Objetivos mínimos:
+-Conexión entre equipos por socket (servidor/cliente)
+-Conexión a base de datos (local) para el login
+-Interfaz gráfica
+-Se mostrará la lista para poder elegir con quien chatear 
+-Enviar archivos y recibir archivos, al recibir archivos poder aceptar o denegar archivos
+
+•	Objetivos opcionales:
+-Verificar el usuario con llaves públicas y privadas,
+-Encriptar los chats.
+-Interfaz mejorada, más estética
+-Enviar imágenes y ver imágenes en el chat
+-Enviar audio y poder reproducirlo en el chat
+
+TAREAS:
+- Buscar información sobre los sockets (como se comunican)
+- Buscar información sobre los puertos (general)
+- Conexión entre dos equipos
+- Interfaz gráfica en Python (general)
+- Conectar Python con BBDD local
+- Transferencia archivos por python
+- Encriptación de mensajes (publica/privada)
+- Creación de un servidor local

@@ -1,0 +1,22 @@
+= Proyecto Chat
+
+https://docs.python.org/3/howto/sockets.html
+
+== Descripción
+
+La idea es diseñar y programar una aplicación de chat local. Cada usuario iniciara sesión con usuario y contraseña.
+
+== Diseño
+
+=== Comunicación
+
+Clase Conexión::
+- Atributos: 
+
+=== Base de Datos
+
+=== Encriptación
+
+=== Interfaz
+
+=== Controlador
