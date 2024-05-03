@@ -1,6 +1,6 @@
 # client.py
-
 #importing socket module
+
 import socket
 
 # creating socket instance
@@ -22,7 +22,6 @@ if data_receive:
     print("CLIENT CONNECTED TO SERVER")
     print(data_receive.decode('utf-8'))
     
-    
     while data_receive:
     	# user input
         client_input = input().encode('utf-8')
@@ -34,4 +33,3 @@ if data_receive:
         data_receive = client_object.recv(1024)
         if data_receive:
             print("{}: {}".format("SERVER",data_receive.decode('utf-8')))
-            #Hola avanuvo
