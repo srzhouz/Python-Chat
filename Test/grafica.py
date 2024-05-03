@@ -34,4 +34,4 @@ entrada_mensaje.pack(side=tk.LEFT, fill=tk.X, padx=10, pady=10, expand=True)
 boton_enviar = tk.Button(frame_chat, text="Enviar", command=enviar_mensaje)
 boton_enviar.pack(side=tk.LEFT, padx=10, pady=10)
 
-ventana.mainloop()
+ventana.mainloop() #
