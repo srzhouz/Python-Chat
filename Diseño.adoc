@@ -2,6 +2,9 @@
 
 https://docs.python.org/3/howto/sockets.html
 
+https://docs.python.org/es/3.10/library/socket.html
+
+
 == Descripción
 
 La idea es diseñar y programar una aplicación de chat local. Cada usuario iniciara sesión con usuario y contraseña.
