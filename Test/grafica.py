@@ -19,7 +19,9 @@ class ChatGUI:
             if self.current_user:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
+                    self.area_chat.configure(state=tk.NORMAL)
                     self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}\n", "other_message")
+                    self.area_chat.configure(state=tk.DISABLED)
                     self.entrada_mensaje.delete(0, tk.END)
 
         def on_select(event):
@@ -28,8 +30,10 @@ class ChatGUI:
                 selected_user = self.users[selected_index[0]]
                 self.current_user = simpledialog.askstring("Chat con", f"¿Cómo te quieres llamar al chatear con {selected_user}?")
                 if self.current_user:
+                    self.area_chat.configure(state=tk.NORMAL)
                     self.area_chat.delete("1.0", tk.END)
                     self.area_chat.insert(tk.END, f"{selected_user}:\n", "other_message")
+                    self.area_chat.configure(state=tk.DISABLED)
                     self.entrada_mensaje.configure(state=tk.NORMAL)
 
         main_frame = tk.Frame(self.master, bg="#f0f0f0")
@@ -52,6 +56,7 @@ class ChatGUI:
         self.area_chat.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
         self.area_chat.tag_configure("user_message", foreground="#333333", font=self.custom_font)
         self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font)
+        self.area_chat.configure(state=tk.DISABLED)
 
         frame_entrada = tk.Frame(frame_chat, bg="#f0f0f0")
         frame_entrada.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
