@@ -9,7 +9,7 @@ class ChatGUI:
 
         self.custom_font = font.Font(family="Roboto", size=12)
 
-        self.users = ["Usuario 1", "Usuario 2", "Usuario 3"]
+        self.users = ["Rodri", "Ivan B", "Carol", "Jiabo", "Ivan P"]
         self.current_user = None
 
         self.create_widgets()
@@ -19,12 +19,8 @@ class ChatGUI:
             if self.current_user:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
-                    self.area_chat.insert(tk.END, f"Tú: {mensaje}", "user_message")
-                    self.area_chat.insert(tk.END, f"{self.current_user}: ", "other_message")
+                    self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}\n", "other_message")
                     self.entrada_mensaje.delete(0, tk.END)
-
-        def recibir_mensaje(remitente, mensaje):
-            self.area_chat.insert(tk.END, f"{remitente}: {mensaje}", "other_message")
 
         def on_select(event):
             selected_index = self.lista_usuarios.curselection()
@@ -34,6 +30,7 @@ class ChatGUI:
                 if self.current_user:
                     self.area_chat.delete("1.0", tk.END)
                     self.area_chat.insert(tk.END, f"{selected_user}:\n", "other_message")
+                    self.entrada_mensaje.configure(state=tk.NORMAL)
 
         main_frame = tk.Frame(self.master, bg="#f0f0f0")
         main_frame.pack(fill=tk.BOTH, expand=True)
