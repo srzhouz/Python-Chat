@@ -34,5 +34,3 @@ if data_receive:
         if data_receive:
             print("{}: {}".format("SERVER",data_receive.decode('utf-8')))
 
-
-#holaa
