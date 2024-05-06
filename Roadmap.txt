@@ -6,15 +6,15 @@ La idea es diseñar y programar una aplicación de chat local. Cada usuario inic
 -Poder chatear entre 2 ordenadores de forma local. Muy simple sin logins por cmd.
 
 •	Objetivos mínimos:
--Conexión entre equipos por socket (servidor/cliente)
--Conexión a base de datos (local) para el login
--Interfaz gráfica
+-Conexión entre equipos por socket (cliente/cliente)
+-Interfaz gráfica oscura
 -Se mostrará la lista para poder elegir con quien chatear 
 -Enviar archivos y recibir archivos, al recibir archivos poder aceptar o denegar archivos
 
 •	Objetivos opcionales:
 -Verificar el usuario con llaves públicas y privadas,
 -Encriptar los chats.
+-Conexión a base de datos (local) para el login
 -Interfaz mejorada, más estética
 -Enviar imágenes y ver imágenes en el chat
 -Enviar audio y poder reproducirlo en el chat
