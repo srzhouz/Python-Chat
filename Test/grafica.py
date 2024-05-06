@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import font, simpledialog
+import tkinter.tix as tix
 
 class ChatGUI:
     def __init__(self, master):
@@ -20,7 +21,9 @@ class ChatGUI:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
                     self.area_chat.configure(state=tk.NORMAL)
-                    self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}\n", "other_message")
+                    self.area_chat.insert(tk.END, f"\n", "other_message")
+                    self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}", "user_message")
+                    self.area_chat.insert(tk.END, "\n", "other_message")
                     self.area_chat.configure(state=tk.DISABLED)
                     self.entrada_mensaje.delete(0, tk.END)
 
@@ -39,7 +42,7 @@ class ChatGUI:
         main_frame = tk.Frame(self.master, bg="#f0f0f0")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        frame_usuarios = tk.Frame(main_frame, bg="#ffffff", relief=tk.RAISED, borderwidth=1)
+        frame_usuarios = tix.Frame(main_frame, bg="#ffffff", relief=tk.RAISED, borderwidth=1)
         frame_usuarios.pack(side=tk.LEFT, fill=tk.BOTH, padx=20, pady=20)
 
         self.lista_usuarios = tk.Listbox(frame_usuarios, width=20, font=self.custom_font, bg="#f0f0f0", borderwidth=0)
@@ -49,16 +52,16 @@ class ChatGUI:
         for user in self.users:
             self.lista_usuarios.insert(tk.END, user)
 
-        frame_chat = tk.Frame(main_frame, bg="#f0f0f0")
+        frame_chat = tix.Frame(main_frame, bg="#f0f0f0")
         frame_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         self.area_chat = tk.Text(frame_chat, width=60, height=20, font=self.custom_font, bg="#f0f0f0", borderwidth=0)
         self.area_chat.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
-        self.area_chat.tag_configure("user_message", foreground="#333333", font=self.custom_font)
-        self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font)
+        self.area_chat.tag_configure("user_message", foreground="#333333", font=self.custom_font, background="#e0f2f1", relief=tix.RAISED, borderwidth=1)
+        self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font, background="#f3f3f3", relief=tix.RAISED, borderwidth=1)
         self.area_chat.configure(state=tk.DISABLED)
 
-        frame_entrada = tk.Frame(frame_chat, bg="#f0f0f0")
+        frame_entrada = tix.Frame(frame_chat, bg="#f0f0f0")
         frame_entrada.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
         self.entrada_mensaje = tk.Entry(frame_entrada, font=self.custom_font, bg="#f0f0f0", borderwidth=1, relief=tk.SOLID)
