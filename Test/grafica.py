@@ -14,6 +14,14 @@ class ChatGUI:
         self.current_user = None
 
         self.create_widgets()
+        self.create_menu()
+
+    def create_menu(self):
+        menubar = tk.Menu(self.master)
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="Salir", command=self.master.quit)
+        menubar.add_cascade(label="Archivo", menu=file_menu)
+        self.master.config(menu=menubar)
 
     def create_widgets(self):
         def enviar_mensaje():
