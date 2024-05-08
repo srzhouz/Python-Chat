@@ -5,7 +5,7 @@ import tkinter.tix as tix
 class ChatGUI:
     def __init__(self, master):
         self.master = master
-        master.title("Chat")
+        master.title("RoyalChat")
         master.configure(bg="#f0f0f0")
 
         self.custom_font = font.Font(family="Roboto", size=12)
@@ -13,8 +13,13 @@ class ChatGUI:
         self.users = ["Rodri", "Ivan B", "Carol", "Jiabo", "Ivan P"]
         self.current_user = None
 
+        self.create_title()
         self.create_widgets()
         self.create_menu()
+
+    def create_title(self):
+        title_label = tk.Label(self.master, text="RoyalChat", font=("Helvetica", 24, "bold"), bg="#f0f0f0")
+        title_label.pack(pady=20)
 
     def create_menu(self):
         menubar = tk.Menu(self.master)
