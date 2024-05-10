@@ -1,0 +1,51 @@
+= Protocolo de comunicación
+
+== Introducción
+
+Los sockects tienen un problema: debemos saber cuánta información vamos a leer de nuestro socket, según cuánto nos han enviado.
+
+== Mensajes de control
+
+Hay varios tipos posibles:
+
+- MSG: Texto que manda un usuario a otro.
+- FIL: Se manda un fichero.
+- CNT: Contenido del fichero, si el usuario ha aceptado.
+- NEW: Se hace una nueva conexión con el otro ordenador.
+- ACK: Se acepta el mensaje previo.
+- NOT: Se deniega el mensaje previo.
+- END: Se cierra la conexión.
+
+Los mensajes serán de 8 bytes de tamaño: 3 de letras, 5 de bytes del tamaño del mensaje de datos.
+
+Por ejemplo, un mensaje de 14 bytes será:
+
+MSG00014
+
+Un mensaje de 256 bytes será:
+
+MSG00256
+
+
+== Mensajes de datos
+
+MSG::
+Se manda el contenido del mensaje, un UTF-8.
+
+FIL::
+Se manda el nombre y extensión del fichero, en UTF-8.
+
+CNT::
+Se manda el contenido, en binario, del fichero.
+
+NEW::
+Manda el nombre de usuario.
+
+ACK::
+Según lo que se acepte y lo que no.
+
+NOT::
+¿No se manda nada después de datos?
+
+END::
+No hay datos.
