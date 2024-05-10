@@ -74,19 +74,19 @@ class ChatGUI:
         for user in self.users:
             self.lista_usuarios.insert(tk.END, user)
 
-        frame_chat = tix.Frame(main_frame, bg="#f0f0f0")
+        frame_chat = tix.Frame(main_frame, bg="#f0f0f0")#borde de todo el chat
         frame_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        self.area_chat = tk.Text(frame_chat, width=60, height=20, font=self.custom_font, bg="#f0f0f0", borderwidth=0)
+        self.area_chat = tk.Text(frame_chat, width=60, height=20, font=self.custom_font, bg="#f0f0f0", borderwidth=0)#fondo chat
         self.area_chat.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
-        self.area_chat.tag_configure("user_message", foreground="#333333", font=self.custom_font, background="#e0f2f1", relief=tix.RAISED, borderwidth=1)
+        self.area_chat.tag_configure("user_message", foreground="#333333", font=self.custom_font, background="#e0f2f1", relief=tix.RAISED, borderwidth=1) #color texto mensaje
         self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font, background="#f3f3f3", relief=tix.RAISED, borderwidth=1)
         self.area_chat.configure(state=tk.DISABLED)
 
-        frame_entrada = tix.Frame(frame_chat, bg="#f0f0f0")
+        frame_entrada = tix.Frame(frame_chat, bg="#f0f0f0")# fondo borde textarea
         frame_entrada.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
-        self.entrada_mensaje = tk.Entry(frame_entrada, font=self.custom_font, bg="#ffffff", borderwidth=1, relief=tk.SOLID)
+        self.entrada_mensaje = tk.Entry(frame_entrada, font=self.custom_font, bg="#ffffff", borderwidth=1, relief=tk.SOLID) #fondo del textarea
         self.entrada_mensaje.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
 
         boton_enviar = tk.Button(frame_entrada, text="Enviar", font=("Arial", 14, "bold"), bg="#4CAF50", fg="#ffffff", relief=tk.FLAT, command=enviar_mensaje)
