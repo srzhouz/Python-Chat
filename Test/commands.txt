@@ -1,18 +1,37 @@
-# Replace ip addresses as appropriate
+# Reemplazar direcciones IP por las apropiadas.
 
+#Ejecutar en el cliente1 (147.182.184.196).
 run on machine 1 (147.182.184.196)
+
+#Envía el mensaje 'punch hole' desde el puerto 50001 en esta máquina hacia la IP 143.198.173.180 en el puerto 50002.
 echo 'punch hole' | nc -u -p 50001 143.198.173.180 50002
+
+#Escucha en el puerto 50001 en esta máquina.
 nc -u -l 50001
 
 
+
+#Ejecutar en el cliente1 (143.198.173.180).
 run on machine 1 (143.198.173.180)
+
+#Envía el mensaje 'punch hole' desde el puerto 50001 en esta máquina hacia la IP 147.182.184.196 en el puerto 50002.
 echo 'punch hole' | nc -u -p 50001 147.182.184.196 50002
+
+#Escucha en el puerto 50001 en esta máquina.
 nc -u -l 50001
 
 
+
+#Ejecutar en el cliente1 (147.182.184.196).
 run on machine 1 (147.182.184.196)
-echo 'hello world' | nc -u -p 50001 143.198.173.180 50001
+
+#Envía el mensaje 'hello world' desde el puerto 50002 en esta máquina hacia la IP 143.198.173.189 en el puerto 50001.
+echo 'hello world' | nc -u -p 50002 143.198.173.180 50001
 
 
+
+#Ejecutar en el cliente1 (143.198.173.180).
 run on machine 1 (143.198.173.180)
+
+#Envía el mensaje 'hello' desde el puerto 50002 en esta máquina hacia la IP 147.182.184.196 en el puerto 50001.
 echo 'hello' | nc -u -p 50002 147.182.184.196 50001
