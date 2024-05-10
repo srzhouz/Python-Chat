@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import font, simpledialog, messagebox
 import tkinter.tix as tix
 import socket
+import threading
 
 class ChatGUI:
     def __init__(self, master):
@@ -15,6 +16,8 @@ class ChatGUI:
         self.current_user = None
         self.current_user_ip = None
         self.destination_ip = None
+        self.server_socket = None
+        self.client_socket = None
 
         self.get_own_ip()  # Obtener la IP del usuario al iniciar la aplicación
 
@@ -22,6 +25,9 @@ class ChatGUI:
         self.create_widgets()
         self.create_menu()
         self.create_shutdown_button()  # Agregar el botón de apagado
+
+        # Iniciar el servidor en un hilo separado
+        threading.Thread(target=self.start_server).start()
 
     def create_title(self):
         title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
@@ -45,16 +51,14 @@ class ChatGUI:
     def get_own_ip(self):
         self.current_user_ip = socket.gethostbyname(socket.gethostname())
 
-    def get_user_ip(self):
-        self.current_user_ip = simpledialog.askstring("IP de red", "Ingresa tu dirección IP de red:")
-
     def create_widgets(self):
         def enviar_mensaje():
             if self.current_user and self.destination_ip:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
-                    # Aquí deberías enviar el mensaje a la dirección IP de destino
-                    # Por ejemplo, utilizando sockets
+                    # Enviar el mensaje al cliente
+                    self.client_socket.send(mensaje.encode())
+                    # Mostrar el mensaje en el área de chat
                     self.area_chat.configure(state=tk.NORMAL)
                     self.area_chat.insert(tk.END, f"\n", "other_message")
                     self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}", "user_message")
@@ -116,12 +120,40 @@ class ChatGUI:
         boton_enviar = tk.Button(frame_entrada, text="Enviar", font=("Arial", 14, "bold"), bg="#4CAF50", fg="#ffffff", relief=tk.FLAT, command=enviar_mensaje)
         boton_enviar.pack(side=tk.LEFT)
 
+    def start_server(self):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind((self.current_user_ip, 12345))  # Puerto arbitrario
+        self.server_socket.listen(1)
+        print("Servidor iniciado, esperando conexión...")
+        self.client_socket, address = self.server_socket.accept()
+        print("Conexión establecida con:", address)
+
+        # Hilo para recibir mensajes del cliente
+        threading.Thread(target=self.receive_messages).start()
+
+    def receive_messages(self):
+        while True:
+            try:
+                mensaje = self.client_socket.recv(1024).decode()
+                if mensaje:
+                    self.area_chat.configure(state=tk.NORMAL)
+                    self.area_chat.insert(tk.END, f"\n", "other_message")
+                    self.area_chat.insert(tk.END, f"Otro usuario: {mensaje}", "user_message")
+                    self.area_chat.insert(tk.END, "\n", "other_message")
+                    self.area_chat.configure(state=tk.DISABLED)
+            except ConnectionResetError:
+                messagebox.showerror("Error", "Se perdió la conexión con el otro usuario.")
+                break
+
     def close_application(self):
+        if self.server_socket:
+            self.server_socket.close()
+        if self.client_socket:
+            self.client_socket.close()
         if messagebox.askokcancel("Cerrar aplicación", "¿Estás seguro que deseas cerrar la aplicación?"):
             self.master.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
     chat_gui = ChatGUI(root)
-    chat_gui.get_user_ip()  # Solicitar la IP de red del usuario al iniciar la aplicación
     root.mainloop()
