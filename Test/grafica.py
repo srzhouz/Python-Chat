@@ -5,7 +5,7 @@ import tkinter.tix as tix
 class ChatGUI:
     def __init__(self, master):
         self.master = master
-        master.title("Calculadora")
+        master.title("RoyalChat")
         master.configure(bg="#f0f0f0")
 
         self.custom_font = font.Font(family="Arial", size=12)
@@ -19,7 +19,7 @@ class ChatGUI:
         self.create_shutdown_button()  # Agregar el botón de apagado
 
     def create_title(self):
-        title_label = tk.Label(self.master, text="Calculadora", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
+        title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
         title_label.pack(pady=20)
 
     def create_menu(self):
@@ -109,3 +109,6 @@ if __name__ == "__main__":
     root = tk.Tk()
     chat_gui = ChatGUI(root)
     root.mainloop()
+
+
+# Confirmar subida de archivos
