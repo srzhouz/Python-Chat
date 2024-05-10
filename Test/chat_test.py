@@ -29,7 +29,7 @@ class ChatGUI:
         self.master.config(menu=menubar)
 
     def create_widgets(self):
-        def enviar_mensaje():
+        def enviar_mensaje(event=None):  # Modificamos la función para aceptar un evento como argumento
             if self.current_user:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
@@ -91,6 +91,9 @@ class ChatGUI:
 
         boton_enviar = tk.Button(frame_entrada, text="Enviar", font=("Arial", 14, "bold"), bg="#4CAF50", fg="#ffffff", relief=tk.FLAT, command=enviar_mensaje)
         boton_enviar.pack(side=tk.LEFT)
+
+        # Vinculamos la tecla Enter con la función enviar_mensaje
+        self.entrada_mensaje.bind("<Return>", enviar_mensaje)
 
 if __name__ == "__main__":
     root = tk.Tk()
