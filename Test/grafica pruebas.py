@@ -23,7 +23,7 @@ class ChatGUI:
 
         self.custom_font = font.Font(family="Arial", size=12)
 
-        self.users = ["Rodri", "Ivan B", "Carol", "Jiabo", "Ivan P"]
+        self.users = ["CHAT GENERAL", "Ivan B", "Carol", "Jiabo", "Rodri"]
         self.current_user = None
         self.current_user_ip = get_public_ip()
         self.destination_ip = None
