@@ -4,6 +4,17 @@ import tkinter.tix as tix
 import socket
 import threading
 
+def get_public_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception as e:
+        print("Error al obtener la IP pública:", e)
+        return None
+
 class ChatGUI:
     def __init__(self, master):
         self.master = master
@@ -14,12 +25,10 @@ class ChatGUI:
 
         self.users = ["Rodri", "Ivan B", "Carol", "Jiabo", "Ivan P"]
         self.current_user = None
-        self.current_user_ip = None
+        self.current_user_ip = get_public_ip()
         self.destination_ip = None
         self.server_socket = None
         self.client_socket = None
-
-        self.get_own_ip()  # Obtener la IP del usuario al iniciar la aplicación
 
         self.create_title()
         self.create_widgets()
@@ -51,9 +60,6 @@ class ChatGUI:
         shutdown_button = tk.Button(frame, text="Salir", command=self.close_application, bg="#ffffff", fg="#4CAF50")
         shutdown_button.config(font=("Arial", 14, "bold"), relief=tk.FLAT, activebackground="#ffffff", activeforeground="#ff0000")
         shutdown_button.pack()
-
-    def get_own_ip(self):
-        self.current_user_ip = socket.gethostbyname(socket.gethostname())
 
     def create_widgets(self):
         def enviar_mensaje():
