@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import font, simpledialog
+from tkinter import font, simpledialog, messagebox
 import tkinter.tix as tix
 
 class ChatGUI:
@@ -16,6 +16,7 @@ class ChatGUI:
         self.create_title()
         self.create_widgets()
         self.create_menu()
+        self.create_shutdown_button()  # Agregar el botón de apagado
 
     def create_title(self):
         title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
@@ -24,9 +25,17 @@ class ChatGUI:
     def create_menu(self):
         menubar = tk.Menu(self.master)
         file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label="Salir", command=self.master.quit)
+        file_menu.add_command(label="Salir", command=self.close_application)
         menubar.add_cascade(label="Archivo", menu=file_menu)
         self.master.config(menu=menubar)
+
+    def create_shutdown_button(self):
+        frame = tk.Frame(self.master, bg="#ffffff", highlightbackground="#4CAF50", highlightthickness=2)
+        frame.place(x=15, y=15)
+
+        shutdown_button = tk.Button(frame, text="Salir", command=self.close_application, bg="#ffffff", fg="#4CAF50")
+        shutdown_button.config(font=("Arial", 14, "bold"), relief=tk.FLAT, activebackground="#ffffff", activeforeground="#ff0000")
+        shutdown_button.pack()
 
     def create_widgets(self):
         def enviar_mensaje():
@@ -91,6 +100,10 @@ class ChatGUI:
 
         boton_enviar = tk.Button(frame_entrada, text="Enviar", font=("Arial", 14, "bold"), bg="#4CAF50", fg="#ffffff", relief=tk.FLAT, command=enviar_mensaje)
         boton_enviar.pack(side=tk.LEFT)
+
+    def close_application(self):
+        if messagebox.askokcancel("Cerrar aplicación", "¿Estás seguro que deseas cerrar la aplicación?"):
+            self.master.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
