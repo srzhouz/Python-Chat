@@ -33,6 +33,10 @@ class ChatGUI:
         title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
         title_label.pack(pady=20)
 
+        # Mostrar la IP del usuario en la esquina superior derecha como información adicional
+        ip_label = tk.Label(self.master, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg="#f0f0f0")
+        ip_label.place(relx=1.0, rely=0, anchor='ne')
+
     def create_menu(self):
         menubar = tk.Menu(self.master)
         file_menu = tk.Menu(menubar, tearoff=0)
@@ -53,7 +57,7 @@ class ChatGUI:
 
     def create_widgets(self):
         def enviar_mensaje():
-            if self.current_user and self.destination_ip:
+            if self.current_user and self.destination_ip and self.client_socket:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
                     # Enviar el mensaje al cliente
