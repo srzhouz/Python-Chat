@@ -16,11 +16,12 @@ class ChatGUI:
         self.current_user_ip = None
         self.destination_ip = None
 
+        self.get_own_ip()  # Obtener la IP del usuario al iniciar la aplicación
+
         self.create_title()
         self.create_widgets()
         self.create_menu()
         self.create_shutdown_button()  # Agregar el botón de apagado
-        self.get_own_ip()  # Obtener la IP del usuario al iniciar la aplicación
 
     def create_title(self):
         title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg="#f0f0f0", fg="#333333")
@@ -43,6 +44,9 @@ class ChatGUI:
 
     def get_own_ip(self):
         self.current_user_ip = socket.gethostbyname(socket.gethostname())
+
+    def get_user_ip(self):
+        self.current_user_ip = simpledialog.askstring("IP de red", "Ingresa tu dirección IP de red:")
 
     def create_widgets(self):
         def enviar_mensaje():
@@ -119,4 +123,5 @@ class ChatGUI:
 if __name__ == "__main__":
     root = tk.Tk()
     chat_gui = ChatGUI(root)
+    chat_gui.get_user_ip()  # Solicitar la IP de red del usuario al iniciar la aplicación
     root.mainloop()
