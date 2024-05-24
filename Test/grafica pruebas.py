@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import font, simpledialog, messagebox, filedialog
-import tkinter.tix as tix
 import socket
 import threading
 import os
@@ -47,21 +46,23 @@ class ChatGUI:
 
     def configure_gui(self):
         if self.light_mode:
-            self.master.configure(bg="#f0f0f0")
-            self.text_bg = "#f0f0f0"
+            self.master.configure(bg="#e0e0e0")
+            self.text_bg = "#ffffff"
             self.text_fg = "#333333"
             self.entry_bg = "#ffffff"
             self.entry_fg = "#000000"
             self.button_bg = "#4CAF50"
             self.button_fg = "#ffffff"
+            self.highlight_color = "#008CBA"
         else:
             self.master.configure(bg="#2c2c2c")
-            self.text_bg = "#2c2c2c"
+            self.text_bg = "#3c3c3c"
             self.text_fg = "#ffffff"
-            self.entry_bg = "#3c3c3c"
+            self.entry_bg = "#4c4c4c"
             self.entry_fg = "#ffffff"
             self.button_bg = "#555555"
             self.button_fg = "#ffffff"
+            self.highlight_color = "#FF5733"
 
     def toggle_theme(self):
         self.light_mode = not self.light_mode
@@ -69,20 +70,23 @@ class ChatGUI:
         self.update_theme()
 
     def update_theme(self):
-        self.master.configure(bg=self.text_bg)
+        self.master.configure(bg=self.master.cget("bg"))
         self.area_chat.configure(bg=self.text_bg, fg=self.text_fg)
         self.entrada_mensaje.configure(bg=self.entry_bg, fg=self.entry_fg)
         self.boton_enviar.configure(bg=self.button_bg, fg=self.button_fg)
         self.boton_archivo.configure(bg=self.button_bg, fg=self.button_fg)
-        self.label_usuarios.configure(bg=self.text_bg, fg=self.text_fg)
+        self.label_usuarios.configure(bg=self.master.cget("bg"), fg=self.text_fg)
         self.theme_button.configure(text="Modo oscuro" if self.light_mode else "Modo claro", bg=self.button_bg, fg=self.button_fg)
+        self.title_label.configure(bg=self.master.cget("bg"), fg=self.text_fg)
+        self.ip_label.configure(bg=self.master.cget("bg"), fg=self.text_fg)
+        self.lista_usuarios.configure(bg=self.entry_bg, fg=self.text_fg, selectbackground=self.highlight_color, selectforeground="#ffffff")
 
     def create_title(self):
-        self.title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg=self.text_bg, fg=self.text_fg)
+        self.title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg=self.master.cget("bg"), fg=self.text_fg)
         self.title_label.pack(pady=20)
 
         # Mostrar la IP del usuario en la esquina superior derecha como información adicional
-        self.ip_label = tk.Label(self.master, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg=self.text_bg, fg=self.text_fg)
+        self.ip_label = tk.Label(self.master, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg=self.master.cget("bg"), fg=self.text_fg)
         self.ip_label.place(relx=1.0, rely=0, anchor='ne')
 
     def create_menu(self):
@@ -93,7 +97,7 @@ class ChatGUI:
         self.master.config(menu=menubar)
 
     def create_shutdown_button(self):
-        frame = tk.Frame(self.master, bg=self.text_bg)
+        frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(x=15, y=15)
 
         shutdown_button = tk.Button(frame, text="Salir", command=self.close_application, bg=self.button_bg, fg=self.button_fg)
@@ -101,7 +105,7 @@ class ChatGUI:
         shutdown_button.pack()
 
     def create_toggle_theme_button(self):
-        frame = tk.Frame(self.master, bg=self.text_bg)
+        frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(relx=1.0, y=15, anchor='ne')
 
         theme_button = tk.Button(frame, text="Modo oscuro" if self.light_mode else "Modo claro", command=self.toggle_theme, bg=self.button_bg, fg=self.button_fg)
@@ -110,7 +114,7 @@ class ChatGUI:
         self.theme_button = theme_button
 
     def create_new_chat_button(self):
-        frame = tk.Frame(self.master, bg=self.text_bg)
+        frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(x=15, y=75)
 
         new_chat_button = tk.Button(frame, text="Iniciar nuevo chat", command=self.iniciar_nuevo_chat, bg=self.button_bg, fg=self.button_fg)
@@ -159,9 +163,9 @@ class ChatGUI:
             if selected_index:
                 for i in range(len(self.lista_usuarios.get(0, tk.END))):
                     if i == selected_index[0]:
-                        self.lista_usuarios.itemconfig(i, bg=self.button_bg, fg=self.button_fg)
+                        self.lista_usuarios.itemconfig(i, bg=self.highlight_color, fg="#ffffff")
                     else:
-                        self.lista_usuarios.itemconfig(i, bg=self.entry_bg, fg=self.entry_fg)
+                        self.lista_usuarios.itemconfig(i, bg=self.entry_bg, fg=self.text_fg)
 
                 selected_user = self.users[selected_index[0]]
                 self.destination_ip = simpledialog.askstring("Chat con", f"Ingresa la IP de {selected_user}:")
@@ -174,29 +178,32 @@ class ChatGUI:
                         self.area_chat.configure(state=tk.DISABLED)
                         self.entrada_mensaje.configure(state=tk.NORMAL)
 
-        main_frame = tk.Frame(self.master, bg=self.text_bg)
+        main_frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        frame_usuarios = tix.Frame(main_frame, bg=self.entry_bg, relief=tk.RAISED, borderwidth=2)
+        frame_usuarios = tk.Frame(main_frame, bg=self.entry_bg, relief=tk.RAISED, borderwidth=2)
         frame_usuarios.pack(side=tk.LEFT, fill=tk.BOTH, padx=20, pady=20)
 
-        self.label_usuarios = tk.Label(frame_usuarios, text="Usuarios", font=("Arial", 18, "bold"), bg=self.entry_bg, fg=self.button_bg)
+        self.label_usuarios = tk.Label(frame_usuarios, text="Usuarios", font=("Arial", 18, "bold"), bg=self.entry_bg, fg=self.highlight_color)
         self.label_usuarios.pack(side=tk.TOP, padx=10, pady=5)
 
-        self.lista_usuarios = tk.Listbox(frame_usuarios, width=20, font=("Arial", 14), bg=self.entry_bg, borderwidth=0, selectbackground=self.button_bg, selectforeground=self.button_fg)
+        self.lista_usuarios = tk.Listbox(frame_usuarios, width=20, font=("Arial", 14), bg=self.entry_bg, borderwidth=0, selectbackground=self.highlight_color, selectforeground="#ffffff")
         self.lista_usuarios.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=(10, 20))  # Más espacio entre nombres
         self.lista_usuarios.bind('<<ListboxSelect>>', on_select)
 
-        frame_chat = tix.Frame(main_frame, bg=self.text_bg)
+        for user in self.users:
+            self.lista_usuarios.insert(tk.END, user)
+
+        frame_chat = tk.Frame(main_frame, bg=self.master.cget("bg"))
         frame_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         self.area_chat = tk.Text(frame_chat, width=60, height=20, font=self.custom_font, bg=self.text_bg, fg=self.text_fg, borderwidth=0)
         self.area_chat.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
-        self.area_chat.tag_configure("user_message", foreground=self.text_fg, font=self.custom_font, background="#e0f2f1", relief=tix.RAISED, borderwidth=1)
-        self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font, background="#f3f3f3", relief=tix.RAISED, borderwidth=1)
+        self.area_chat.tag_configure("user_message", foreground=self.text_fg, font=self.custom_font, background="#e0f2f1", relief=tk.RAISED, borderwidth=1)
+        self.area_chat.tag_configure("other_message", foreground="#666666", font=self.custom_font, background="#f3f3f3", relief=tk.RAISED, borderwidth=1)
         self.area_chat.configure(state=tk.DISABLED)
 
-        frame_entrada = tix.Frame(frame_chat, bg=self.text_bg)
+        frame_entrada = tk.Frame(frame_chat, bg=self.master.cget("bg"))
         frame_entrada.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
         self.entrada_mensaje = tk.Entry(frame_entrada, font=self.custom_font, bg=self.entry_bg, fg=self.entry_fg, borderwidth=1, relief=tk.SOLID)
@@ -219,23 +226,29 @@ class ChatGUI:
                 messagebox.showerror("Error", f"Error al enviar el archivo: {e}")
 
     def start_server(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((self.current_user_ip, 12345))  # Puerto arbitrario
-        self.server_socket.listen(1)
-        print("Servidor iniciado, esperando conexión...")
         while True:
-            client_socket, address = self.server_socket.accept()
-            print("Conexión establecida con:", address)
-            message = client_socket.recv(1024).decode()
-            if message == "Solicitud de chat":
-                response = messagebox.askyesno("Solicitud de chat", f"¿Aceptar solicitud de chat de {address[0]}?")
-                if response:
-                    client_socket.send("Aceptar".encode())
-                    self.client_socket = client_socket
-                    threading.Thread(target=self.receive_messages).start()
-                else:
-                    client_socket.send("Rechazar".encode())
-                    client_socket.close()
+            try:
+                self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server_socket.bind((self.current_user_ip, 12345))  # Puerto arbitrario
+                self.server_socket.listen(1)
+                print("Servidor iniciado, esperando conexión...")
+                client_socket, address = self.server_socket.accept()
+                print("Conexión establecida con:", address)
+                threading.Thread(target=self.handle_client, args=(client_socket, address)).start()
+            except OSError:
+                time.sleep(1)
+
+    def handle_client(self, client_socket, address):
+        message = client_socket.recv(1024).decode()
+        if message == "Solicitud de chat":
+            response = messagebox.askyesno("Solicitud de chat", f"¿Aceptar solicitud de chat de {address[0]}?")
+            if response:
+                client_socket.send("Aceptar".encode())
+                self.client_socket = client_socket
+                threading.Thread(target=self.receive_messages).start()
+            else:
+                client_socket.send("Rechazar".encode())
+                client_socket.close()
 
     def receive_messages(self):
         while True:
@@ -256,11 +269,14 @@ class ChatGUI:
             new_ip = get_public_ip()
             if new_ip and new_ip != self.current_user_ip:
                 self.current_user_ip = new_ip
-                self.ip_label.config(text=f"Tu IP: {self.current_user_ip}")
+                self.update_ip_label()
                 if self.server_socket:
                     self.server_socket.close()
                 threading.Thread(target=self.start_server).start()
             time.sleep(10)
+
+    def update_ip_label(self):
+        self.ip_label.config(text=f"Tu IP: {self.current_user_ip}")
 
     def close_application(self):
         if self.server_socket:
