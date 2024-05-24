@@ -4,6 +4,7 @@ import tkinter.tix as tix
 import socket
 import threading
 import os
+import time
 
 def get_public_ip():
     try:
@@ -41,6 +42,8 @@ class ChatGUI:
 
         # Iniciar el servidor en un hilo separado
         threading.Thread(target=self.start_server).start()
+        # Iniciar el chequeo de IP en un hilo separado
+        threading.Thread(target=self.check_ip_change).start()
 
     def configure_gui(self):
         if self.light_mode:
@@ -70,15 +73,17 @@ class ChatGUI:
         self.area_chat.configure(bg=self.text_bg, fg=self.text_fg)
         self.entrada_mensaje.configure(bg=self.entry_bg, fg=self.entry_fg)
         self.boton_enviar.configure(bg=self.button_bg, fg=self.button_fg)
+        self.boton_archivo.configure(bg=self.button_bg, fg=self.button_fg)
         self.label_usuarios.configure(bg=self.text_bg, fg=self.text_fg)
+        self.theme_button.configure(text="Modo oscuro" if self.light_mode else "Modo claro", bg=self.button_bg, fg=self.button_fg)
 
     def create_title(self):
-        title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg=self.text_bg, fg=self.text_fg)
-        title_label.pack(pady=20)
+        self.title_label = tk.Label(self.master, text="RoyalChat", font=("Arial", 36, "bold"), bg=self.text_bg, fg=self.text_fg)
+        self.title_label.pack(pady=20)
 
         # Mostrar la IP del usuario en la esquina superior derecha como información adicional
-        ip_label = tk.Label(self.master, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg=self.text_bg, fg=self.text_fg)
-        ip_label.place(relx=1.0, rely=0, anchor='ne')
+        self.ip_label = tk.Label(self.master, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg=self.text_bg, fg=self.text_fg)
+        self.ip_label.place(relx=1.0, rely=0, anchor='ne')
 
     def create_menu(self):
         menubar = tk.Menu(self.master)
@@ -115,12 +120,24 @@ class ChatGUI:
     def iniciar_nuevo_chat(self):
         new_user_ip = simpledialog.askstring("Nuevo Chat", "Ingresa la IP del amigo con el que quieres chatear:")
         if new_user_ip:
-            new_user_name = simpledialog.askstring("Nuevo Chat", "Ingresa un nombre para el chat con este usuario:")
-            if new_user_name:
-                self.users.append(new_user_name)
-                self.lista_usuarios.insert(tk.END, new_user_name)
-                self.destination_ip = new_user_ip
-                self.current_user = new_user_name
+            self.destination_ip = new_user_ip
+            # Enviar solicitud de chat al destinatario
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect((self.destination_ip, 12345))
+            self.client_socket.send("Solicitud de chat".encode())
+            response = self.client_socket.recv(1024).decode()
+            if response == "Aceptar":
+                self.current_user = simpledialog.askstring("Nuevo Chat", "Ingresa un nombre para el chat:")
+                if self.current_user:
+                    self.users.append(self.current_user)
+                    self.lista_usuarios.insert(tk.END, self.current_user)
+                    self.area_chat.configure(state=tk.NORMAL)
+                    self.area_chat.delete("1.0", tk.END)
+                    self.area_chat.insert(tk.END, f"Chat iniciado con {self.current_user}:\n", "other_message")
+                    self.area_chat.configure(state=tk.DISABLED)
+                    self.entrada_mensaje.configure(state=tk.NORMAL)
+            else:
+                messagebox.showinfo("Solicitud rechazada", "El usuario ha rechazado tu solicitud de chat.")
 
     def create_widgets(self):
         def enviar_mensaje():
@@ -170,9 +187,6 @@ class ChatGUI:
         self.lista_usuarios.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=(10, 20))  # Más espacio entre nombres
         self.lista_usuarios.bind('<<ListboxSelect>>', on_select)
 
-        for user in self.users:
-            self.lista_usuarios.insert(tk.END, user)
-
         frame_chat = tix.Frame(main_frame, bg=self.text_bg)
         frame_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
 
@@ -209,11 +223,19 @@ class ChatGUI:
         self.server_socket.bind((self.current_user_ip, 12345))  # Puerto arbitrario
         self.server_socket.listen(1)
         print("Servidor iniciado, esperando conexión...")
-        self.client_socket, address = self.server_socket.accept()
-        print("Conexión establecida con:", address)
-
-        # Hilo para recibir mensajes del cliente
-        threading.Thread(target=self.receive_messages).start()
+        while True:
+            client_socket, address = self.server_socket.accept()
+            print("Conexión establecida con:", address)
+            message = client_socket.recv(1024).decode()
+            if message == "Solicitud de chat":
+                response = messagebox.askyesno("Solicitud de chat", f"¿Aceptar solicitud de chat de {address[0]}?")
+                if response:
+                    client_socket.send("Aceptar".encode())
+                    self.client_socket = client_socket
+                    threading.Thread(target=self.receive_messages).start()
+                else:
+                    client_socket.send("Rechazar".encode())
+                    client_socket.close()
 
     def receive_messages(self):
         while True:
@@ -228,6 +250,17 @@ class ChatGUI:
             except ConnectionResetError:
                 messagebox.showerror("Error", "Se perdió la conexión con el otro usuario.")
                 break
+
+    def check_ip_change(self):
+        while True:
+            new_ip = get_public_ip()
+            if new_ip and new_ip != self.current_user_ip:
+                self.current_user_ip = new_ip
+                self.ip_label.config(text=f"Tu IP: {self.current_user_ip}")
+                if self.server_socket:
+                    self.server_socket.close()
+                threading.Thread(target=self.start_server).start()
+            time.sleep(10)
 
     def close_application(self):
         if self.server_socket:
