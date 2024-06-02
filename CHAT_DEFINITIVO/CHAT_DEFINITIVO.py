@@ -152,8 +152,19 @@ class ChatGUI:
 
     def cambiar_estado(self):
         self.status = "online" if self.status == "offline" else "offline"
-        self.update_user_list()
+        self.broadcast_status()
         self.status_indicator.configure(bg=self.status_online_bg if self.status == "online" else self.status_offline_bg)
+        self.update_user_list()
+
+    def broadcast_status(self):
+        for user, info in self.users.items():
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((info['ip'], 12345))
+                s.send(f"STATUS:{self.current_user_ip}:{self.status}".encode())
+                s.close()
+            except Exception as e:
+                print(f"Error al enviar estado a {user}: {e}")
 
     def agregar_usuario(self):
         user_name = simpledialog.askstring("Agregar Usuario", "Ingresa el nombre del usuario:")
@@ -291,7 +302,8 @@ class ChatGUI:
             _, ip, user_name = message.split(":")
             response = messagebox.askyesno("Solicitud de chat", f"{user_name} ({ip}) quiere iniciar un chat. ¿Aceptar?")
             if response:
-                self.users[user_name] = {'ip': ip, 'status': 'online'}
+                chat_name = simpledialog.askstring("Nombre del Chat", "¿Cómo quieres llamar a este chat?")
+                self.users[chat_name] = {'ip': ip, 'status': 'online'}
                 self.save_users()
                 self.update_user_list()
                 client_socket.send("ACCEPT".encode())
@@ -300,6 +312,13 @@ class ChatGUI:
             else:
                 client_socket.send("REJECT".encode())
                 client_socket.close()
+        elif message.startswith("STATUS:"):
+            _, ip, status = message.split(":")
+            for user, info in self.users.items():
+                if info['ip'] == ip:
+                    self.users[user]['status'] = status
+                    self.update_user_list()
+                    break
         else:
             self.client_socket = client_socket
             threading.Thread(target=self.receive_messages).start()
@@ -351,9 +370,8 @@ class ChatGUI:
     def update_user_list(self):
         self.lista_usuarios.delete(0, tk.END)
         for user, info in self.users.items():
-            color = self.status_online_bg if info['status'] == 'online' else self.status_offline_bg
-            self.lista_usuarios.insert(tk.END, f"{user} ({'🟢' if info['status'] == 'online' else '🔴'})")
-            self.lista_usuarios.itemconfig(tk.END, fg=color)
+            display_text = f"{user} ({'🟢' if info['status'] == 'online' else '🔴'})"
+            self.lista_usuarios.insert(tk.END, display_text)
 
 if __name__ == "__main__":
     root = tk.Tk()
