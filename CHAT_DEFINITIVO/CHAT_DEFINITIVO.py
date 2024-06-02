@@ -294,12 +294,16 @@ class ChatGUI:
                 time.sleep(1)
 
     def handle_client(self, client_socket, address):
+        def ask_for_chat_name():
+            chat_name = simpledialog.askstring("Nombre del Chat", "¿Cómo quieres llamar a este chat?")
+            return chat_name
+
         message = client_socket.recv(1024).decode()
         if message.startswith("REQUEST_CHAT:"):
             _, ip, user_name = message.split(":")
             response = messagebox.askyesno("Solicitud de chat", f"{user_name} ({ip}) quiere iniciar un chat. ¿Aceptar?")
             if response:
-                chat_name = simpledialog.askstring("Nombre del Chat", "¿Cómo quieres llamar a este chat?")
+                chat_name = self.master.after(0, ask_for_chat_name)
                 self.users[chat_name] = {'ip': ip, 'status': 'online'}
                 self.update_user_list()
                 client_socket.send(f"ACCEPT:{chat_name}".encode())
