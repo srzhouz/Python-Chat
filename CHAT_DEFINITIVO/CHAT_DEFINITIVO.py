@@ -178,11 +178,12 @@ class ChatGUI:
             s.connect((user_ip, 12345))
             s.send(f"REQUEST_CHAT:{self.current_user_ip}:{user_name}".encode())
             response = s.recv(1024).decode()
-            if response == "ACCEPT":
-                self.users[user_name] = {'ip': user_ip, 'status': 'online'}
+            if response.startswith("ACCEPT"):
+                chat_name = response.split(":")[1]
+                self.users[chat_name] = {'ip': user_ip, 'status': 'online'}
                 self.save_users()
                 self.update_user_list()
-                messagebox.showinfo("Solicitud aceptada", f"{user_name} ha aceptado la solicitud de chat.")
+                messagebox.showinfo("Solicitud aceptada", f"{chat_name} ha aceptado la solicitud de chat.")
             else:
                 messagebox.showinfo("Solicitud rechazada", f"{user_name} ha rechazado la solicitud de chat.")
             s.close()
@@ -306,7 +307,7 @@ class ChatGUI:
                 self.users[chat_name] = {'ip': ip, 'status': 'online'}
                 self.save_users()
                 self.update_user_list()
-                client_socket.send("ACCEPT".encode())
+                client_socket.send(f"ACCEPT:{chat_name}".encode())
                 self.client_socket = client_socket
                 threading.Thread(target=self.receive_messages).start()
             else:
