@@ -34,6 +34,7 @@ class ChatGUI:
         self.destination_ip = None
         self.server_socket = None
         self.client_socket = None
+        self.current_chat_user = None
 
         self.create_title()
         self.create_widgets()
@@ -119,7 +120,7 @@ class ChatGUI:
         self.theme_button.pack(side=tk.RIGHT)
 
         self.shutdown_button = tk.Button(frame, text="Salir", command=self.close_application, bg=self.button_bg, fg=self.button_fg)
-        self.shutdown_button.config(font=("Arial", 14, "bold"), relief=tk.FLAT, activebackground=self.button_bg, activeforeground="#ff0000")
+        self.shutdown_button.config(font=("Arial", 14, "bold"), relief=tk.FLAT)
         self.shutdown_button.pack(side=tk.RIGHT)
 
     def create_status_button(self):
@@ -152,25 +153,13 @@ class ChatGUI:
     def cambiar_estado(self):
         self.status = "online" if self.status == "offline" else "offline"
         self.update_user_list()
-        self.broadcast_status()
         self.status_indicator.configure(bg=self.status_online_bg if self.status == "online" else self.status_offline_bg)
-
-    def broadcast_status(self):
-        for user, info in self.users.items():
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((info['ip'], 12345))
-                s.send(f"STATUS:{self.current_user_ip}:{self.status}".encode())
-                s.close()
-            except Exception as e:
-                print(f"Error al enviar estado a {user}: {e}")
 
     def agregar_usuario(self):
         user_name = simpledialog.askstring("Agregar Usuario", "Ingresa el nombre del usuario:")
         user_ip = simpledialog.askstring("Agregar Usuario", "Ingresa la IP del usuario:")
         if user_name and user_ip:
             self.users[user_name] = {'ip': user_ip, 'status': 'offline'}
-            self.lista_usuarios.insert(tk.END, user_name)
             self.save_users()
             self.update_user_list()
 
@@ -184,8 +173,6 @@ class ChatGUI:
                 self.users[new_name] = {'ip': new_ip, 'status': self.users[selected_user]['status']}
                 if new_name != selected_user:
                     del self.users[selected_user]
-                self.lista_usuarios.delete(selected_index)
-                self.lista_usuarios.insert(selected_index, new_name)
                 self.save_users()
                 self.update_user_list()
 
@@ -194,40 +181,37 @@ class ChatGUI:
         if selected_index:
             selected_user = self.lista_usuarios.get(selected_index)
             del self.users[selected_user]
-            self.lista_usuarios.delete(selected_index)
             self.save_users()
             self.update_user_list()
 
     def create_widgets(self):
         def enviar_mensaje():
-            if self.current_user and self.destination_ip and self.client_socket:
+            if self.current_chat_user and self.client_socket:
                 mensaje = self.entrada_mensaje.get()
                 if mensaje.strip():
                     self.client_socket.send(mensaje.encode())
                     self.area_chat.configure(state=tk.NORMAL)
-                    self.area_chat.insert(tk.END, f"\n", "other_message")
-                    self.area_chat.insert(tk.END, f"{self.current_user}: {mensaje}", "user_message")
-                    self.area_chat.insert(tk.END, "\n", "other_message")
+                    self.area_chat.insert(tk.END, f"Tú: {mensaje}\n", "user_message")
                     self.area_chat.configure(state=tk.DISABLED)
                     self.entrada_mensaje.delete(0, tk.END)
 
         def on_select(event):
             selected_index = self.lista_usuarios.curselection()
             if selected_index:
-                for i in range(len(self.lista_usuarios.get(0, tk.END))):
-                    if i == selected_index[0]:
-                        self.lista_usuarios.itemconfig(i, bg=self.highlight_color, fg="#ffffff")
-                    else:
-                        self.lista_usuarios.itemconfig(i, bg=self.entry_bg, fg=self.text_fg)
-
-                selected_user = self.lista_usuarios.get(selected_index)
+                selected_user = self.lista_usuarios.get(selected_index).split(" (")[0]
+                self.current_chat_user = selected_user
                 self.destination_ip = self.users[selected_user]['ip']
-                self.current_user = selected_user
                 self.area_chat.configure(state=tk.NORMAL)
                 self.area_chat.delete("1.0", tk.END)
-                self.area_chat.insert(tk.END, f"{selected_user}:\n", "other_message")
+                self.area_chat.insert(tk.END, f"Chat con {selected_user}:\n", "other_message")
                 self.area_chat.configure(state=tk.DISABLED)
                 self.entrada_mensaje.configure(state=tk.NORMAL)
+                # Conectar al usuario seleccionado
+                try:
+                    self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.client_socket.connect((self.destination_ip, 12345))
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo conectar con {selected_user}: {e}")
 
         main_frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         main_frame.pack(fill=tk.BOTH, expand=True)
@@ -238,12 +222,9 @@ class ChatGUI:
         self.label_usuarios = tk.Label(frame_usuarios, text="Usuarios", font=("Arial", 18, "bold"), bg=self.entry_bg, fg=self.highlight_color)
         self.label_usuarios.pack(side=tk.TOP, padx=10, pady=5)
 
-        self.lista_usuarios = tk.Listbox(frame_usuarios, width=20, font=("Arial", 14), bg=self.entry_bg, borderwidth=0, selectbackground=self.highlight_color, selectforeground="#ffffff")
+        self.lista_usuarios = tk.Listbox(frame_usuarios, width=30, font=("Arial", 14), bg=self.entry_bg, borderwidth=0, selectbackground=self.highlight_color, selectforeground="#ffffff")
         self.lista_usuarios.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=(10, 20))
         self.lista_usuarios.bind('<<ListboxSelect>>', on_select)
-
-        for user in self.users:
-            self.lista_usuarios.insert(tk.END, user)
 
         frame_chat = tk.Frame(main_frame, bg=self.master.cget("bg"))
         frame_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
@@ -290,25 +271,8 @@ class ChatGUI:
                 time.sleep(1)
 
     def handle_client(self, client_socket, address):
-        message = client_socket.recv(1024).decode()
-        if message.startswith("STATUS:"):
-            _, ip, status = message.split(":")
-            for user, info in self.users.items():
-                if info['ip'] == ip:
-                    self.users[user]['status'] = status
-                    self.update_user_list()
-                    break
-        elif message == "Solicitud de chat":
-            response = messagebox.askyesno("Solicitud de chat", f"¿Aceptar solicitud de chat de {address[0]}?")
-            if response:
-                client_socket.send("Aceptar".encode())
-                self.client_socket = client_socket
-                self.users[address[0]]['status'] = 'online'
-                self.update_user_list()
-                threading.Thread(target=self.receive_messages).start()
-            else:
-                client_socket.send("Rechazar".encode())
-                client_socket.close()
+        self.client_socket = client_socket
+        threading.Thread(target=self.receive_messages).start()
 
     def receive_messages(self):
         while True:
@@ -316,9 +280,7 @@ class ChatGUI:
                 mensaje = self.client_socket.recv(1024).decode()
                 if mensaje:
                     self.area_chat.configure(state=tk.NORMAL)
-                    self.area_chat.insert(tk.END, f"\n", "other_message")
-                    self.area_chat.insert(tk.END, f"Otro usuario: {mensaje}", "user_message")
-                    self.area_chat.insert(tk.END, "\n", "other_message")
+                    self.area_chat.insert(tk.END, f"{self.current_chat_user}: {mensaje}\n", "other_message")
                     self.area_chat.configure(state=tk.DISABLED)
             except ConnectionResetError:
                 messagebox.showerror("Error", "Se perdió la conexión con el otro usuario.")
