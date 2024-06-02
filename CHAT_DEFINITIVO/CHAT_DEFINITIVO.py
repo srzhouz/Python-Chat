@@ -4,6 +4,7 @@ import socket
 import threading
 import os
 import time
+import json
 
 def get_public_ip():
     try:
@@ -27,7 +28,7 @@ class ChatGUI:
         self.custom_font = font.Font(family="Helvetica", size=12)
         self.title_font = font.Font(family="Helvetica", size=24, weight="bold")
 
-        self.users = {}
+        self.users = self.load_users()
         self.current_user = None
         self.current_user_ip = get_public_ip()
         self.destination_ip = None
@@ -151,9 +152,9 @@ class ChatGUI:
 
     def cambiar_estado(self):
         self.status = "online" if self.status == "offline" else "offline"
-        self.broadcast_status()
-        self.status_indicator.configure(bg=self.status_online_bg if self.status == "online" else self.status_offline_bg)
         self.update_user_list()
+        self.status_indicator.configure(bg=self.status_online_bg if self.status == "online" else self.status_offline_bg)
+        self.broadcast_status()
 
     def broadcast_status(self):
         for user, info in self.users.items():
@@ -177,11 +178,11 @@ class ChatGUI:
             s.connect((user_ip, 12345))
             s.send(f"REQUEST_CHAT:{self.current_user_ip}:{user_name}".encode())
             response = s.recv(1024).decode()
-            if response.startswith("ACCEPT"):
-                chat_name = response.split(":")[1]
-                self.users[chat_name] = {'ip': user_ip, 'status': 'online'}
+            if response == "ACCEPT":
+                self.users[user_name] = {'ip': user_ip, 'status': 'online'}
+                self.save_users()
                 self.update_user_list()
-                messagebox.showinfo("Solicitud aceptada", f"{chat_name} ha aceptado la solicitud de chat.")
+                messagebox.showinfo("Solicitud aceptada", f"{user_name} ha aceptado la solicitud de chat.")
             else:
                 messagebox.showinfo("Solicitud rechazada", f"{user_name} ha rechazado la solicitud de chat.")
             s.close()
@@ -198,6 +199,7 @@ class ChatGUI:
                 self.users[new_name] = {'ip': new_ip, 'status': self.users[selected_user]['status']}
                 if new_name != selected_user:
                     del self.users[selected_user]
+                self.save_users()
                 self.update_user_list()
 
     def eliminar_usuario(self):
@@ -205,6 +207,7 @@ class ChatGUI:
         if selected_index:
             selected_user = self.lista_usuarios.get(selected_index).split(" (")[0]
             del self.users[selected_user]
+            self.save_users()
             self.update_user_list()
 
     def create_widgets(self):
@@ -294,19 +297,15 @@ class ChatGUI:
                 time.sleep(1)
 
     def handle_client(self, client_socket, address):
-        def ask_for_chat_name():
-            chat_name = simpledialog.askstring("Nombre del Chat", "¿Cómo quieres llamar a este chat?")
-            return chat_name
-
         message = client_socket.recv(1024).decode()
         if message.startswith("REQUEST_CHAT:"):
             _, ip, user_name = message.split(":")
             response = messagebox.askyesno("Solicitud de chat", f"{user_name} ({ip}) quiere iniciar un chat. ¿Aceptar?")
             if response:
-                chat_name = self.master.after(0, ask_for_chat_name)
-                self.users[chat_name] = {'ip': ip, 'status': 'online'}
+                self.users[user_name] = {'ip': ip, 'status': 'online'}
+                self.save_users()
                 self.update_user_list()
-                client_socket.send(f"ACCEPT:{chat_name}".encode())
+                client_socket.send("ACCEPT".encode())
                 self.client_socket = client_socket
                 threading.Thread(target=self.receive_messages).start()
             else:
@@ -317,6 +316,7 @@ class ChatGUI:
             for user, info in self.users.items():
                 if info['ip'] == ip:
                     self.users[user]['status'] = status
+                    self.save_users()
                     self.update_user_list()
                     break
         else:
@@ -357,11 +357,23 @@ class ChatGUI:
         if messagebox.askokcancel("Cerrar aplicación", "¿Estás seguro que deseas cerrar la aplicación?"):
             self.master.destroy()
 
+    def load_users(self):
+        if os.path.exists("users.json"):
+            with open("users.json", "r") as file:
+                return json.load(file)
+        return {}
+
+    def save_users(self):
+        with open("users.json", "w") as file:
+            json.dump(self.users, file)
+
     def update_user_list(self):
         self.lista_usuarios.delete(0, tk.END)
         for user, info in self.users.items():
+            color = self.status_online_bg if info['status'] == 'online' else self.status_offline_bg
             display_text = f"{user} ({'🟢' if info['status'] == 'online' else '🔴'})"
             self.lista_usuarios.insert(tk.END, display_text)
+            self.lista_usuarios.itemconfig(tk.END, fg=color)
 
 if __name__ == "__main__":
     root = tk.Tk()
