@@ -4,7 +4,6 @@ import socket
 import threading
 import os
 import time
-import json
 
 def get_public_ip():
     try:
@@ -28,7 +27,7 @@ class ChatGUI:
         self.custom_font = font.Font(family="Helvetica", size=12)
         self.title_font = font.Font(family="Helvetica", size=24, weight="bold")
 
-        self.users = self.load_users()
+        self.users = {}
         self.current_user = None
         self.current_user_ip = get_public_ip()
         self.destination_ip = None
@@ -181,7 +180,6 @@ class ChatGUI:
             if response.startswith("ACCEPT"):
                 chat_name = response.split(":")[1]
                 self.users[chat_name] = {'ip': user_ip, 'status': 'online'}
-                self.save_users()
                 self.update_user_list()
                 messagebox.showinfo("Solicitud aceptada", f"{chat_name} ha aceptado la solicitud de chat.")
             else:
@@ -200,7 +198,6 @@ class ChatGUI:
                 self.users[new_name] = {'ip': new_ip, 'status': self.users[selected_user]['status']}
                 if new_name != selected_user:
                     del self.users[selected_user]
-                self.save_users()
                 self.update_user_list()
 
     def eliminar_usuario(self):
@@ -208,7 +205,6 @@ class ChatGUI:
         if selected_index:
             selected_user = self.lista_usuarios.get(selected_index).split(" (")[0]
             del self.users[selected_user]
-            self.save_users()
             self.update_user_list()
 
     def create_widgets(self):
@@ -305,7 +301,6 @@ class ChatGUI:
             if response:
                 chat_name = simpledialog.askstring("Nombre del Chat", "¿Cómo quieres llamar a este chat?")
                 self.users[chat_name] = {'ip': ip, 'status': 'online'}
-                self.save_users()
                 self.update_user_list()
                 client_socket.send(f"ACCEPT:{chat_name}".encode())
                 self.client_socket = client_socket
@@ -357,16 +352,6 @@ class ChatGUI:
             self.client_socket.close()
         if messagebox.askokcancel("Cerrar aplicación", "¿Estás seguro que deseas cerrar la aplicación?"):
             self.master.destroy()
-
-    def load_users(self):
-        if os.path.exists("users.json"):
-            with open("users.json", "r") as file:
-                return json.load(file)
-        return {}
-
-    def save_users(self):
-        with open("users.json", "w") as file:
-            json.dump(self.users, file)
 
     def update_user_list(self):
         self.lista_usuarios.delete(0, tk.END)
