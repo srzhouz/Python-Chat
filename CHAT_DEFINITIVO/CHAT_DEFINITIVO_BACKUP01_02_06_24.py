@@ -5,7 +5,6 @@ import threading
 import os
 import time
 
-# Función para obtener la IP pública del usuario
 def get_public_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -17,16 +16,14 @@ def get_public_ip():
         print("Error al obtener la IP pública:", e)
         return None
 
-# Clase principal para la interfaz gráfica del chat
 class ChatGUI:
     def __init__(self, master):
         self.master = master
         master.title("EnygmaChat")
-        self.light_mode = True  # Modo claro por defecto
-        self.status = "offline"  # Estado inicial offline
+        self.light_mode = True
+        self.status = "offline"
         self.configure_gui()
 
-        # Fuentes personalizadas para los textos
         self.custom_font = font.Font(family="Helvetica", size=12)
         self.title_font = font.Font(family="Helvetica", size=24, weight="bold")
 
@@ -38,7 +35,6 @@ class ChatGUI:
         self.client_socket = None
         self.current_chat_user = None
 
-        # Creación de los elementos de la interfaz gráfica
         self.create_title()
         self.create_widgets()
         self.create_menu()
@@ -46,11 +42,9 @@ class ChatGUI:
         self.create_new_chat_button()
         self.create_status_button()
 
-        # Inicio de los hilos para el servidor y para verificar cambios de IP
         threading.Thread(target=self.start_server).start()
         threading.Thread(target=self.check_ip_change).start()
 
-    # Configuración inicial de la GUI
     def configure_gui(self):
         if self.light_mode:
             self.master.configure(bg="#e0e0e0")
@@ -75,13 +69,11 @@ class ChatGUI:
             self.status_online_bg = "#4CAF50"
             self.status_offline_bg = "#F44336"
 
-    # Método para alternar entre modos claro y oscuro
     def toggle_theme(self):
         self.light_mode = not self.light_mode
         self.configure_gui()
         self.update_theme()
 
-    # Actualización de los elementos de la GUI según el modo de color
     def update_theme(self):
         self.master.configure(bg=self.master.cget("bg"))
         self.area_chat.configure(bg=self.text_bg, fg=self.text_fg)
@@ -99,7 +91,6 @@ class ChatGUI:
         self.shutdown_button.configure(bg=self.button_bg, fg=self.button_fg)
         self.update_user_list()
 
-    # Creación del título y la etiqueta de IP en la interfaz
     def create_title(self):
         title_frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         title_frame.pack(fill=tk.X)
@@ -110,7 +101,6 @@ class ChatGUI:
         self.ip_label = tk.Label(title_frame, text=f"Tu IP: {self.current_user_ip}", font=("Arial", 10), bg=self.master.cget("bg"), fg=self.text_fg)
         self.ip_label.pack(anchor='ne')
 
-    # Creación del menú de archivo con opción para salir
     def create_menu(self):
         menubar = tk.Menu(self.master)
         file_menu = tk.Menu(menubar, tearoff=0)
@@ -118,7 +108,6 @@ class ChatGUI:
         menubar.add_cascade(label="Archivo", menu=file_menu)
         self.master.config(menu=menubar)
 
-    # Botones para cambiar el tema y cerrar la aplicación
     def create_theme_and_shutdown_buttons(self):
         frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(relx=1.0, y=15, anchor='ne')
@@ -131,7 +120,6 @@ class ChatGUI:
         self.shutdown_button.config(font=("Arial", 14, "bold"), relief=tk.FLAT)
         self.shutdown_button.pack(side=tk.RIGHT)
 
-    # Botón para cambiar el estado en línea
     def create_status_button(self):
         frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(x=15, y=15)
@@ -143,7 +131,6 @@ class ChatGUI:
         self.status_indicator = tk.Label(frame, width=2, height=1, bg=self.status_offline_bg, relief=tk.SOLID)
         self.status_indicator.pack(side=tk.LEFT, padx=5)
 
-    # Botón para iniciar un nuevo chat
     def create_new_chat_button(self):
         frame = tk.Frame(self.master, bg=self.master.cget("bg"))
         frame.place(x=15, y=75)
@@ -152,13 +139,11 @@ class ChatGUI:
         self.boton_nuevo_chat.config(font=("Arial", 14, "bold"), relief=tk.FLAT)
         self.boton_nuevo_chat.pack()
 
-    # Método para cambiar el estado en línea del usuario
     def cambiar_estado(self):
         self.status = "online" if self.status == "offline" else "offline"
         self.status_indicator.configure(bg=self.status_online_bg if self.status == "online" else self.status_offline_bg)
         self.broadcast_status()
 
-    # Enviar el estado actual a otros usuarios
     def broadcast_status(self):
         if self.client_socket:
             try:
@@ -167,7 +152,6 @@ class ChatGUI:
             except Exception as e:
                 print(f"Error al enviar estado: {e}")
 
-    # Método para iniciar un nuevo chat solicitando el nombre y la IP del usuario destino
     def iniciar_nuevo_chat(self):
         user_name = simpledialog.askstring("Nuevo Chat", "Ingresa tu nombre:")
         if not user_name:
@@ -198,7 +182,6 @@ class ChatGUI:
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo conectar con {new_user_ip}: {e}")
 
-    # Creación de los elementos de la interfaz para el chat y los usuarios
     def create_widgets(self):
         def enviar_mensaje():
             if self.current_user and self.destination_ip and self.client_socket:
@@ -243,7 +226,6 @@ class ChatGUI:
         self.boton_archivo = tk.Button(frame_entrada, text="Archivo", font=("Arial", 14, "bold"), bg=self.button_bg, fg=self.button_fg, relief=tk.FLAT, command=self.enviar_archivo)
         self.boton_archivo.pack(side=tk.LEFT)
 
-    # Método para enviar un archivo a través del chat
     def enviar_archivo(self):
         file_path = filedialog.askopenfilename()
         if file_path and self.client_socket:
@@ -254,7 +236,6 @@ class ChatGUI:
             except Exception as e:
                 messagebox.showerror("Error", f"Error al enviar el archivo: {e}")
 
-    # Método para iniciar el servidor del chat
     def start_server(self):
         while True:
             try:
@@ -268,7 +249,6 @@ class ChatGUI:
             except OSError:
                 time.sleep(1)
 
-    # Manejo de las conexiones de los clientes
     def handle_client(self, client_socket, address):
         message = client_socket.recv(1024).decode()
         if message.startswith("REQUEST_CHAT:"):
@@ -295,7 +275,6 @@ class ChatGUI:
                 self.users[user_name]['status'] = status
                 self.update_user_list()
 
-    # Recepción de mensajes del otro usuario
     def receive_messages(self):
         while True:
             try:
@@ -308,7 +287,6 @@ class ChatGUI:
                 messagebox.showerror("Error", "Se perdió la conexión con el otro usuario.")
                 break
 
-    # Verificación de cambios en la IP pública
     def check_ip_change(self):
         while True:
             new_ip = get_public_ip()
@@ -320,11 +298,9 @@ class ChatGUI:
                 threading.Thread(target=self.start_server).start()
             time.sleep(10)
 
-    # Actualización de la etiqueta de IP
     def update_ip_label(self):
         self.ip_label.config(text=f"Tu IP: {self.current_user_ip}")
 
-    # Cierre de la aplicación y los sockets
     def close_application(self):
         if self.server_socket:
             self.server_socket.close()
@@ -333,7 +309,6 @@ class ChatGUI:
         if messagebox.askokcancel("Cerrar aplicación", "¿Estás seguro que deseas cerrar la aplicación?"):
             self.master.destroy()
 
-    # Actualización de la lista de usuarios en la interfaz
     def update_user_list(self):
         self.lista_usuarios.delete(0, tk.END)
         for user, info in self.users.items():
