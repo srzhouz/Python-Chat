@@ -159,14 +159,29 @@ class ChatGUI:
         user_name = simpledialog.askstring("Agregar Usuario", "Ingresa el nombre del usuario:")
         user_ip = simpledialog.askstring("Agregar Usuario", "Ingresa la IP del usuario:")
         if user_name and user_ip:
-            self.users[user_name] = {'ip': user_ip, 'status': 'offline'}
-            self.save_users()
-            self.update_user_list()
+            self.send_chat_request(user_name, user_ip)
+
+    def send_chat_request(self, user_name, user_ip):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((user_ip, 12345))
+            s.send(f"REQUEST_CHAT:{self.current_user_ip}:{user_name}".encode())
+            response = s.recv(1024).decode()
+            if response == "ACCEPT":
+                self.users[user_name] = {'ip': user_ip, 'status': 'online'}
+                self.save_users()
+                self.update_user_list()
+                messagebox.showinfo("Solicitud aceptada", f"{user_name} ha aceptado la solicitud de chat.")
+            else:
+                messagebox.showinfo("Solicitud rechazada", f"{user_name} ha rechazado la solicitud de chat.")
+            s.close()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo enviar la solicitud a {user_name}: {e}")
 
     def modificar_usuario(self):
         selected_index = self.lista_usuarios.curselection()
         if selected_index:
-            selected_user = self.lista_usuarios.get(selected_index)
+            selected_user = self.lista_usuarios.get(selected_index).split(" (")[0]
             new_name = simpledialog.askstring("Modificar Usuario", "Ingresa el nuevo nombre del usuario:", initialvalue=selected_user)
             new_ip = simpledialog.askstring("Modificar Usuario", "Ingresa la nueva IP del usuario:", initialvalue=self.users[selected_user]['ip'])
             if new_name and new_ip:
@@ -179,7 +194,7 @@ class ChatGUI:
     def eliminar_usuario(self):
         selected_index = self.lista_usuarios.curselection()
         if selected_index:
-            selected_user = self.lista_usuarios.get(selected_index)
+            selected_user = self.lista_usuarios.get(selected_index).split(" (")[0]
             del self.users[selected_user]
             self.save_users()
             self.update_user_list()
@@ -271,8 +286,23 @@ class ChatGUI:
                 time.sleep(1)
 
     def handle_client(self, client_socket, address):
-        self.client_socket = client_socket
-        threading.Thread(target=self.receive_messages).start()
+        message = client_socket.recv(1024).decode()
+        if message.startswith("REQUEST_CHAT:"):
+            _, ip, user_name = message.split(":")
+            response = messagebox.askyesno("Solicitud de chat", f"{user_name} ({ip}) quiere iniciar un chat. ¿Aceptar?")
+            if response:
+                self.users[user_name] = {'ip': ip, 'status': 'online'}
+                self.save_users()
+                self.update_user_list()
+                client_socket.send("ACCEPT".encode())
+                self.client_socket = client_socket
+                threading.Thread(target=self.receive_messages).start()
+            else:
+                client_socket.send("REJECT".encode())
+                client_socket.close()
+        else:
+            self.client_socket = client_socket
+            threading.Thread(target=self.receive_messages).start()
 
     def receive_messages(self):
         while True:
@@ -321,8 +351,9 @@ class ChatGUI:
     def update_user_list(self):
         self.lista_usuarios.delete(0, tk.END)
         for user, info in self.users.items():
-            display_text = f"{user} ({'🟢' if info['status'] == 'online' else '🔴'})"
-            self.lista_usuarios.insert(tk.END, display_text)
+            color = self.status_online_bg if info['status'] == 'online' else self.status_offline_bg
+            self.lista_usuarios.insert(tk.END, f"{user} ({'🟢' if info['status'] == 'online' else '🔴'})")
+            self.lista_usuarios.itemconfig(tk.END, fg=color)
 
 if __name__ == "__main__":
     root = tk.Tk()
